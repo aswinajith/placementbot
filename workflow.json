@@ -1,0 +1,1088 @@
+{
+  "name": "placement",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        -336
+      ],
+      "id": "eb221f70-56e4-4faa-a696-11b347b15132",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OmS5DzPhGclsFgvV",
+          "name": "gmail1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "company_name",
+              "description": "Name of the recruiting company"
+            },
+            {
+              "name": "slot",
+              "description": "Placement slot identifier like B2, A1, etc"
+            },
+            {
+              "name": "post",
+              "description": "Job position or title being offered"
+            },
+            {
+              "name": "pay",
+              "description": "Salary package in LPA or CTC"
+            },
+            {
+              "name": "deadline",
+              "description": "Application deadline with date and time"
+            },
+            {
+              "name": "eligible_branches",
+              "description": "Eligible branches - extract as comma-separated list or 'All branches"
+            },
+            {
+              "name": "min_cgpa",
+              "description": "Minimum CGPA requirement"
+            },
+            {
+              "name": "form_link",
+              "description": "Google form or registration link URL"
+            },
+            {
+              "name": "backlog_policy",
+              "description": "Backlog restrictions or requirements"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        -448
+      ],
+      "id": "f6290f8b-b036-4fc4-a68a-ef2f24e1f66b",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -224
+      ],
+      "id": "b4760599-9e24-4ab7-a468-45ccf47b8914",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "IoefUVo3j7mtfRRm",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a9fc558b-b085-4c2c-82b7-7c1b08041d7b",
+              "leftValue": "={{ $json.output.pay }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        -336
+      ],
+      "id": "064aa032-2b6a-42cc-85ca-a8fd33b9064c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=*New Drive*\n*Company*: {{ $('Information Extractor').item.json.output.company_name }}\n*Min CGPA*: {{ $('Information Extractor').item.json.output.min_cgpa }}\n*Branches*: {{ $('Information Extractor').item.json.output.eligible_branches }}\n\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1360,
+        -192
+      ],
+      "id": "598ace55-250d-4eb9-aa39-49ccb6e3f8fd",
+      "name": "Send a text message",
+      "webhookId": "f452d0b6-dfc3-41a5-9132-0d49f4338bb0",
+      "notesInFlow": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "jpYZBbTevmF7Z8sw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs",
+          "mode": "list",
+          "cachedResultName": "Placementchatid",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        848,
+        -192
+      ],
+      "id": "699be10d-2fb5-4236-b995-5e3f381bcd9c",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PxH5Kw2QGkIPVUG8",
+          "name": "aswinajithh.mec"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1136,
+        -192
+      ],
+      "id": "0a132806-7507-43ae-afc2-71a86ad7a693",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        32
+      ],
+      "id": "dca81ce3-73ba-4059-ad58-e5ddfb7fd3b9",
+      "name": "Telegram Trigger",
+      "webhookId": "6c5b5b34-6d17-49b8-9a1a-78b26e786ca1",
+      "credentials": {
+        "telegramApi": {
+          "id": "jpYZBbTevmF7Z8sw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs",
+          "mode": "list",
+          "cachedResultName": "Placementchatid",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "chat_id",
+              "lookupValue": "={{ $json.message.chat.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        32
+      ],
+      "id": "c2acde32-5471-4ad0-ab36-712b5086be6a",
+      "name": "Get row(s) in sheet1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PxH5Kw2QGkIPVUG8",
+          "name": "aswinajithh.mec"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "397395ed-4a7b-469b-afb7-10a4f5184d0c",
+              "leftValue": "={{ $json.chat_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        32
+      ],
+      "id": "6b44a32e-1645-484f-a22e-dc53da1af453",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs",
+          "mode": "list",
+          "cachedResultName": "Placementchatid",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+            "student_name": "={{ $('Telegram Trigger').item.json.message.chat.first_name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "student_name",
+              "displayName": "student_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "branch",
+              "displayName": "branch",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "cgpa",
+              "displayName": "cgpa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        656,
+        32
+      ],
+      "id": "fa037add-7fcb-43fb-8a2d-678eda2fe6dd",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PxH5Kw2QGkIPVUG8",
+          "name": "aswinajithh.mec"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "You'll now receive automatic notifications about new placement drives and reminders for deadlines",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        880,
+        32
+      ],
+      "id": "acd1cc1a-a0e0-4b5b-8067-8ded023f39fc",
+      "name": "Send a text message1",
+      "webhookId": "0364baf5-3783-4371-979d-b63172bd611d",
+      "credentials": {
+        "telegramApi": {
+          "id": "jpYZBbTevmF7Z8sw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Convert this deadline text to ISO 8601 datetime format in Asia/Kolkata timezone (YYYY-MM-DDTHH:mm:ss+05:30):\n\nDeadline: {{ $json.output.deadline }}\n\nCurrent date and time: {{ $now.toISO() }}\n\nReturn only the ISO datetime string with timezone offset, nothing else.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -592
+      ],
+      "id": "2a4331e4-51c3-483d-b976-dafb925e66d2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        864,
+        -368
+      ],
+      "id": "3610a8e5-94d7-4968-8ed8-8f0240a921fd",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "IoefUVo3j7mtfRRm",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "subtractFromDate",
+        "magnitude": "={{ $json.output }}",
+        "timeUnit": "hours",
+        "duration": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        -496
+      ],
+      "id": "3c3ab571-3b33-41a3-8436-baba7f926271",
+      "name": "Date & Time"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1XKCWfkLGJxaDCuPQg52-IYo1Tvw47hzoxsjUfhiPC7o",
+          "mode": "list",
+          "cachedResultName": "companytracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XKCWfkLGJxaDCuPQg52-IYo1Tvw47hzoxsjUfhiPC7o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XKCWfkLGJxaDCuPQg52-IYo1Tvw47hzoxsjUfhiPC7o/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "reminder_iso": "={{ $json.newDate }}",
+            "company_name": "={{ $('Information Extractor').item.json.output.company_name }}",
+            "deadline_iso": "={{ $('AI Agent').item.json.output }}",
+            "deadline_readable": "={{ $('Information Extractor').item.json.output.deadline }}",
+            "reminder_sent": "False"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "deadline_iso",
+              "displayName": "deadline_iso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reminder_iso",
+              "displayName": "reminder_iso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "deadline_readable",
+              "displayName": "deadline_readable",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reminder_sent",
+              "displayName": "reminder_sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1360,
+        -496
+      ],
+      "id": "18549842-e65a-4c54-9a82-7c8cdfd41784",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PxH5Kw2QGkIPVUG8",
+          "name": "aswinajithh.mec"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        256
+      ],
+      "id": "1ee753a6-ff85-4829-bdec-9bb7f9993544",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "outputFieldName": "current_time",
+        "options": {
+          "timezone": "Asia/Kolkata"
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        208,
+        256
+      ],
+      "id": "0f938bf3-6144-4589-8eb6-cdb8a0129c6c",
+      "name": "Date & Time1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1XKCWfkLGJxaDCuPQg52-IYo1Tvw47hzoxsjUfhiPC7o",
+          "mode": "list",
+          "cachedResultName": "companytracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XKCWfkLGJxaDCuPQg52-IYo1Tvw47hzoxsjUfhiPC7o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XKCWfkLGJxaDCuPQg52-IYo1Tvw47hzoxsjUfhiPC7o/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        256
+      ],
+      "id": "fb29a955-517e-4151-aa95-ba7ee4730fb9",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PxH5Kw2QGkIPVUG8",
+          "name": "aswinajithh.mec"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bc8769ac-3779-4a44-a175-124e84608493",
+              "leftValue": "={{ $json.reminder_sent }}",
+              "rightValue": "FALSE",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "6e6e3ed1-e0ab-4043-9ad4-ff9182640de7",
+              "leftValue": "={{ $json.reminder_iso }}",
+              "rightValue": "={{ $('Date & Time1').item.json.current_time }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "beforeOrEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        256
+      ],
+      "id": "cea80dbe-88e9-4919-96f0-39fc7593e065",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs",
+          "mode": "list",
+          "cachedResultName": "Placementchatid",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/124iesR05DoVPoUbALQmidg_qt0x3miGQCPZ9NJhzPBs/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        880,
+        256
+      ],
+      "id": "ffba53be-3fe5-47a5-9900-b981e6fab83f",
+      "name": "Get row(s) in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PxH5Kw2QGkIPVUG8",
+          "name": "aswinajithh.mec"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=One Hour left to apply for \nCompany: {{ $('Get row(s) in sheet2').item.json.company_name }}\nDeadline:  {{ $('Get row(s) in sheet2').item.json.deadline_readable }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1104,
+        256
+      ],
+      "id": "191e325a-2910-4b4e-8401-5fa4031c84e4",
+      "name": "Send a text message2",
+      "webhookId": "1d081482-faee-4d75-bfb2-7c2dd5edd135",
+      "credentials": {
+        "telegramApi": {
+          "id": "jpYZBbTevmF7Z8sw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1XKCWfkLGJxaDCuPQg52-IYo1Tvw47hzoxsjUfhiPC7o",
+          "mode": "list",
+          "cachedResultName": "companytracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XKCWfkLGJxaDCuPQg52-IYo1Tvw47hzoxsjUfhiPC7o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XKCWfkLGJxaDCuPQg52-IYo1Tvw47hzoxsjUfhiPC7o/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "company_name": "={{ $('Get row(s) in sheet2').item.json.company_name }}",
+            "reminder_sent": "True"
+          },
+          "matchingColumns": [
+            "company_name"
+          ],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "deadline_iso",
+              "displayName": "deadline_iso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reminder_iso",
+              "displayName": "reminder_iso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "deadline_readable",
+              "displayName": "deadline_readable",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reminder_sent",
+              "displayName": "reminder_sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1328,
+        256
+      ],
+      "id": "2ce43685-e77d-4afa-a737-bd42527c4428",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "PxH5Kw2QGkIPVUG8",
+          "name": "aswinajithh.mec"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Date & Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Date & Time1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message2": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "14d8fcbe-a5d9-4a5f-9c30-05107f1031f0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "339befb1eea583ee1aa0f5767d9158baea6080bde70ccbcc17ece5c2d95e4366"
+  },
+  "id": "yym0EX9NLwjdr8ZD",
+  "tags": []
+}
